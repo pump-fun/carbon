@@ -7,14 +7,11 @@ pub mod pool_row;
 pub mod sharing_config_row;
 pub mod user_volume_accumulator_row;
 
-pub use self::bonding_curve_row::*;
-pub use self::fee_config_row::*;
-pub use self::global_config_row::*;
-pub use self::global_volume_accumulator_row::*;
-pub use self::pool_row::*;
-pub use self::sharing_config_row::*;
-pub use self::user_volume_accumulator_row::*;
-
+pub use self::{
+    bonding_curve_row::*, fee_config_row::*, global_config_row::*,
+    global_volume_accumulator_row::*, pool_row::*, sharing_config_row::*,
+    user_volume_accumulator_row::*,
+};
 use super::PumpAmmAccount;
 
 pub struct PumpAmmAccountsMigration;
@@ -45,7 +42,10 @@ impl sqlx_migrator::Migration<sqlx::Postgres> for PumpAmmAccountsMigration {
     }
 }
 
-pub struct PumpAmmAccountWithMetadata(pub PumpAmmAccount, pub carbon_core::account::AccountMetadata);
+pub struct PumpAmmAccountWithMetadata(
+    pub PumpAmmAccount,
+    pub carbon_core::account::AccountMetadata,
+);
 
 impl From<(PumpAmmAccount, carbon_core::account::AccountMetadata)> for PumpAmmAccountWithMetadata {
     fn from(value: (PumpAmmAccount, carbon_core::account::AccountMetadata)) -> Self {
@@ -60,22 +60,32 @@ impl carbon_core::postgres::operations::Insert for PumpAmmAccountWithMetadata {
 
         match account {
             PumpAmmAccount::BondingCurve(account) => {
-                let row = bonding_curve_row::BondingCurveRow::from_parts(*account.clone(), metadata.clone());
+                let row = bonding_curve_row::BondingCurveRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::FeeConfig(account) => {
-                let row = fee_config_row::FeeConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row =
+                    fee_config_row::FeeConfigRow::from_parts(*account.clone(), metadata.clone());
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::GlobalConfig(account) => {
-                let row = global_config_row::GlobalConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row = global_config_row::GlobalConfigRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::GlobalVolumeAccumulator(account) => {
-                let row = global_volume_accumulator_row::GlobalVolumeAccumulatorRow::from_parts(*account.clone(), metadata.clone());
+                let row = global_volume_accumulator_row::GlobalVolumeAccumulatorRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
@@ -85,12 +95,18 @@ impl carbon_core::postgres::operations::Insert for PumpAmmAccountWithMetadata {
                 Ok(())
             }
             PumpAmmAccount::SharingConfig(account) => {
-                let row = sharing_config_row::SharingConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row = sharing_config_row::SharingConfigRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::UserVolumeAccumulator(account) => {
-                let row = user_volume_accumulator_row::UserVolumeAccumulatorRow::from_parts(*account.clone(), metadata.clone());
+                let row = user_volume_accumulator_row::UserVolumeAccumulatorRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
@@ -104,22 +120,32 @@ impl carbon_core::postgres::operations::Upsert for PumpAmmAccountWithMetadata {
         let PumpAmmAccountWithMetadata(account, metadata) = self;
         match account {
             PumpAmmAccount::BondingCurve(account) => {
-                let row = bonding_curve_row::BondingCurveRow::from_parts(*account.clone(), metadata.clone());
+                let row = bonding_curve_row::BondingCurveRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::FeeConfig(account) => {
-                let row = fee_config_row::FeeConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row =
+                    fee_config_row::FeeConfigRow::from_parts(*account.clone(), metadata.clone());
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::GlobalConfig(account) => {
-                let row = global_config_row::GlobalConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row = global_config_row::GlobalConfigRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::GlobalVolumeAccumulator(account) => {
-                let row = global_volume_accumulator_row::GlobalVolumeAccumulatorRow::from_parts(*account.clone(), metadata.clone());
+                let row = global_volume_accumulator_row::GlobalVolumeAccumulatorRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
@@ -129,16 +155,21 @@ impl carbon_core::postgres::operations::Upsert for PumpAmmAccountWithMetadata {
                 Ok(())
             }
             PumpAmmAccount::SharingConfig(account) => {
-                let row = sharing_config_row::SharingConfigRow::from_parts(*account.clone(), metadata.clone());
+                let row = sharing_config_row::SharingConfigRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpAmmAccount::UserVolumeAccumulator(account) => {
-                let row = user_volume_accumulator_row::UserVolumeAccumulatorRow::from_parts(*account.clone(), metadata.clone());
+                let row = user_volume_accumulator_row::UserVolumeAccumulatorRow::from_parts(
+                    *account.clone(),
+                    metadata.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
         }
     }
 }
-
