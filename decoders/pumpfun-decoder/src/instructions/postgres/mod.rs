@@ -2,21 +2,22 @@
 pub mod admin_set_creator_row;
 pub mod admin_set_idl_authority_row;
 pub mod admin_update_token_incentives_row;
-pub mod buy_row;
 pub mod buy_exact_sol_in_row;
+pub mod buy_row;
 pub mod claim_cashback_row;
 pub mod claim_token_incentives_row;
 pub mod close_user_volume_accumulator_row;
 pub mod collect_creator_fee_row;
+pub mod cpi_event_row;
 pub mod create_row;
 pub mod create_v2_row;
 pub mod distribute_creator_fees_row;
 pub mod extend_account_row;
 pub mod get_minimum_distributable_fee_row;
-pub mod initialize_row;
 pub mod init_user_volume_accumulator_row;
-pub mod migrate_row;
+pub mod initialize_row;
 pub mod migrate_bonding_curve_creator_row;
+pub mod migrate_row;
 pub mod sell_row;
 pub mod set_creator_row;
 pub mod set_mayhem_virtual_params_row;
@@ -29,40 +30,19 @@ pub mod toggle_create_v2_row;
 pub mod toggle_mayhem_mode_row;
 pub mod update_buyback_config_row;
 pub mod update_global_authority_row;
-pub mod cpi_event_row;
 
-pub use self::admin_set_creator_row::*;
-pub use self::admin_set_idl_authority_row::*;
-pub use self::admin_update_token_incentives_row::*;
-pub use self::buy_row::*;
-pub use self::buy_exact_sol_in_row::*;
-pub use self::claim_cashback_row::*;
-pub use self::claim_token_incentives_row::*;
-pub use self::close_user_volume_accumulator_row::*;
-pub use self::collect_creator_fee_row::*;
-pub use self::create_row::*;
-pub use self::create_v2_row::*;
-pub use self::distribute_creator_fees_row::*;
-pub use self::extend_account_row::*;
-pub use self::get_minimum_distributable_fee_row::*;
-pub use self::initialize_row::*;
-pub use self::init_user_volume_accumulator_row::*;
-pub use self::migrate_row::*;
-pub use self::migrate_bonding_curve_creator_row::*;
-pub use self::sell_row::*;
-pub use self::set_creator_row::*;
-pub use self::set_mayhem_virtual_params_row::*;
-pub use self::set_metaplex_creator_row::*;
-pub use self::set_params_row::*;
-pub use self::set_reserved_fee_recipients_row::*;
-pub use self::sync_user_volume_accumulator_row::*;
-pub use self::toggle_cashback_enabled_row::*;
-pub use self::toggle_create_v2_row::*;
-pub use self::toggle_mayhem_mode_row::*;
-pub use self::update_buyback_config_row::*;
-pub use self::update_global_authority_row::*;
-pub use self::cpi_event_row::*;
-
+pub use self::{
+    admin_set_creator_row::*, admin_set_idl_authority_row::*, admin_update_token_incentives_row::*,
+    buy_exact_sol_in_row::*, buy_row::*, claim_cashback_row::*, claim_token_incentives_row::*,
+    close_user_volume_accumulator_row::*, collect_creator_fee_row::*, cpi_event_row::*,
+    create_row::*, create_v2_row::*, distribute_creator_fees_row::*, extend_account_row::*,
+    get_minimum_distributable_fee_row::*, init_user_volume_accumulator_row::*, initialize_row::*,
+    migrate_bonding_curve_creator_row::*, migrate_row::*, sell_row::*, set_creator_row::*,
+    set_mayhem_virtual_params_row::*, set_metaplex_creator_row::*, set_params_row::*,
+    set_reserved_fee_recipients_row::*, sync_user_volume_accumulator_row::*,
+    toggle_cashback_enabled_row::*, toggle_create_v2_row::*, toggle_mayhem_mode_row::*,
+    update_buyback_config_row::*, update_global_authority_row::*,
+};
 use super::PumpInstruction;
 
 pub struct PumpInstructionsMigration;
@@ -117,171 +97,317 @@ impl sqlx_migrator::Migration<sqlx::Postgres> for PumpInstructionsMigration {
     }
 }
 
-pub struct PumpInstructionWithMetadata(pub PumpInstruction, pub carbon_core::instruction::InstructionMetadata);
+pub struct PumpInstructionWithMetadata(
+    pub PumpInstruction,
+    pub carbon_core::instruction::InstructionMetadata,
+    pub Vec<solana_instruction::AccountMeta>,
+);
 
-impl From<(PumpInstruction, carbon_core::instruction::InstructionMetadata)> for PumpInstructionWithMetadata {
-    fn from(value: (PumpInstruction, carbon_core::instruction::InstructionMetadata)) -> Self {
-        PumpInstructionWithMetadata(value.0, value.1)
+impl
+    From<(
+        PumpInstruction,
+        carbon_core::instruction::InstructionMetadata,
+        Vec<solana_instruction::AccountMeta>,
+    )> for PumpInstructionWithMetadata
+{
+    fn from(
+        value: (
+            PumpInstruction,
+            carbon_core::instruction::InstructionMetadata,
+            Vec<solana_instruction::AccountMeta>,
+        ),
+    ) -> Self {
+        PumpInstructionWithMetadata(value.0, value.1, value.2)
     }
 }
 
 #[async_trait::async_trait]
 impl carbon_core::postgres::operations::Insert for PumpInstructionWithMetadata {
     async fn insert(&self, pool: &sqlx::PgPool) -> carbon_core::error::CarbonResult<()> {
-        let PumpInstructionWithMetadata(instruction, metadata) = self;
+        let PumpInstructionWithMetadata(instruction, metadata, accounts) = self;
         match instruction {
             PumpInstruction::AdminSetCreator(instruction) => {
-                let row = admin_set_creator_row::AdminSetCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = admin_set_creator_row::AdminSetCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::AdminSetIdlAuthority(instruction) => {
-                let row = admin_set_idl_authority_row::AdminSetIdlAuthorityRow::from_parts(instruction.clone(), metadata.clone());
+                let row = admin_set_idl_authority_row::AdminSetIdlAuthorityRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::AdminUpdateTokenIncentives(instruction) => {
-                let row = admin_update_token_incentives_row::AdminUpdateTokenIncentivesRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    admin_update_token_incentives_row::AdminUpdateTokenIncentivesRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Buy(instruction) => {
-                let row = buy_row::BuyRow::from_parts(instruction.clone(), metadata.clone());
+                let row = buy_row::BuyRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::BuyExactSolIn(instruction) => {
-                let row = buy_exact_sol_in_row::BuyExactSolInRow::from_parts(instruction.clone(), metadata.clone());
+                let row = buy_exact_sol_in_row::BuyExactSolInRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ClaimCashback(instruction) => {
-                let row = claim_cashback_row::ClaimCashbackRow::from_parts(instruction.clone(), metadata.clone());
+                let row = claim_cashback_row::ClaimCashbackRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ClaimTokenIncentives(instruction) => {
-                let row = claim_token_incentives_row::ClaimTokenIncentivesRow::from_parts(instruction.clone(), metadata.clone());
+                let row = claim_token_incentives_row::ClaimTokenIncentivesRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CloseUserVolumeAccumulator(instruction) => {
-                let row = close_user_volume_accumulator_row::CloseUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    close_user_volume_accumulator_row::CloseUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CollectCreatorFee(instruction) => {
-                let row = collect_creator_fee_row::CollectCreatorFeeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = collect_creator_fee_row::CollectCreatorFeeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Create(instruction) => {
-                let row = create_row::CreateRow::from_parts(instruction.clone(), metadata.clone());
+                let row = create_row::CreateRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CreateV2(instruction) => {
-                let row = create_v2_row::CreateV2Row::from_parts(instruction.clone(), metadata.clone());
+                let row = create_v2_row::CreateV2Row::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::DistributeCreatorFees(instruction) => {
-                let row = distribute_creator_fees_row::DistributeCreatorFeesRow::from_parts(instruction.clone(), metadata.clone());
+                let row = distribute_creator_fees_row::DistributeCreatorFeesRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ExtendAccount(instruction) => {
-                let row = extend_account_row::ExtendAccountRow::from_parts(instruction.clone(), metadata.clone());
+                let row = extend_account_row::ExtendAccountRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::GetMinimumDistributableFee(instruction) => {
-                let row = get_minimum_distributable_fee_row::GetMinimumDistributableFeeRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    get_minimum_distributable_fee_row::GetMinimumDistributableFeeRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::InitUserVolumeAccumulator(instruction) => {
-                let row = init_user_volume_accumulator_row::InitUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    init_user_volume_accumulator_row::InitUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Initialize(instruction) => {
-                let row = initialize_row::InitializeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = initialize_row::InitializeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Migrate(instruction) => {
-                let row = migrate_row::MigrateRow::from_parts(instruction.clone(), metadata.clone());
+                let row = migrate_row::MigrateRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::MigrateBondingCurveCreator(instruction) => {
-                let row = migrate_bonding_curve_creator_row::MigrateBondingCurveCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    migrate_bonding_curve_creator_row::MigrateBondingCurveCreatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Sell(instruction) => {
-                let row = sell_row::SellRow::from_parts(instruction.clone(), metadata.clone());
+                let row = sell_row::SellRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetCreator(instruction) => {
-                let row = set_creator_row::SetCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_creator_row::SetCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetMayhemVirtualParams(instruction) => {
-                let row = set_mayhem_virtual_params_row::SetMayhemVirtualParamsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_mayhem_virtual_params_row::SetMayhemVirtualParamsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetMetaplexCreator(instruction) => {
-                let row = set_metaplex_creator_row::SetMetaplexCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_metaplex_creator_row::SetMetaplexCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetParams(instruction) => {
-                let row = set_params_row::SetParamsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_params_row::SetParamsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetReservedFeeRecipients(instruction) => {
-                let row = set_reserved_fee_recipients_row::SetReservedFeeRecipientsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_reserved_fee_recipients_row::SetReservedFeeRecipientsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SyncUserVolumeAccumulator(instruction) => {
-                let row = sync_user_volume_accumulator_row::SyncUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    sync_user_volume_accumulator_row::SyncUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleCashbackEnabled(instruction) => {
-                let row = toggle_cashback_enabled_row::ToggleCashbackEnabledRow::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_cashback_enabled_row::ToggleCashbackEnabledRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleCreateV2(instruction) => {
-                let row = toggle_create_v2_row::ToggleCreateV2Row::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_create_v2_row::ToggleCreateV2Row::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleMayhemMode(instruction) => {
-                let row = toggle_mayhem_mode_row::ToggleMayhemModeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_mayhem_mode_row::ToggleMayhemModeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::UpdateBuybackConfig(instruction) => {
-                let row = update_buyback_config_row::UpdateBuybackConfigRow::from_parts(instruction.clone(), metadata.clone());
+                let row = update_buyback_config_row::UpdateBuybackConfigRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::UpdateGlobalAuthority(instruction) => {
-                let row = update_global_authority_row::UpdateGlobalAuthorityRow::from_parts(instruction.clone(), metadata.clone());
+                let row = update_global_authority_row::UpdateGlobalAuthorityRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CpiEvent(instruction) => {
-                let row = cpi_event_row::CpiEventRow::from_parts(instruction.clone(), metadata.clone());
+                let row = cpi_event_row::CpiEventRow::from_parts(
+                    (**instruction).clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.insert(pool).await?;
                 Ok(())
             }
@@ -292,160 +418,290 @@ impl carbon_core::postgres::operations::Insert for PumpInstructionWithMetadata {
 #[async_trait::async_trait]
 impl carbon_core::postgres::operations::Upsert for PumpInstructionWithMetadata {
     async fn upsert(&self, pool: &sqlx::PgPool) -> carbon_core::error::CarbonResult<()> {
-        let PumpInstructionWithMetadata(instruction, metadata) = self;
+        let PumpInstructionWithMetadata(instruction, metadata, accounts) = self;
         match instruction {
             PumpInstruction::AdminSetCreator(instruction) => {
-                let row = admin_set_creator_row::AdminSetCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = admin_set_creator_row::AdminSetCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::AdminSetIdlAuthority(instruction) => {
-                let row = admin_set_idl_authority_row::AdminSetIdlAuthorityRow::from_parts(instruction.clone(), metadata.clone());
+                let row = admin_set_idl_authority_row::AdminSetIdlAuthorityRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::AdminUpdateTokenIncentives(instruction) => {
-                let row = admin_update_token_incentives_row::AdminUpdateTokenIncentivesRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    admin_update_token_incentives_row::AdminUpdateTokenIncentivesRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Buy(instruction) => {
-                let row = buy_row::BuyRow::from_parts(instruction.clone(), metadata.clone());
+                let row = buy_row::BuyRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::BuyExactSolIn(instruction) => {
-                let row = buy_exact_sol_in_row::BuyExactSolInRow::from_parts(instruction.clone(), metadata.clone());
+                let row = buy_exact_sol_in_row::BuyExactSolInRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ClaimCashback(instruction) => {
-                let row = claim_cashback_row::ClaimCashbackRow::from_parts(instruction.clone(), metadata.clone());
+                let row = claim_cashback_row::ClaimCashbackRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ClaimTokenIncentives(instruction) => {
-                let row = claim_token_incentives_row::ClaimTokenIncentivesRow::from_parts(instruction.clone(), metadata.clone());
+                let row = claim_token_incentives_row::ClaimTokenIncentivesRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CloseUserVolumeAccumulator(instruction) => {
-                let row = close_user_volume_accumulator_row::CloseUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    close_user_volume_accumulator_row::CloseUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CollectCreatorFee(instruction) => {
-                let row = collect_creator_fee_row::CollectCreatorFeeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = collect_creator_fee_row::CollectCreatorFeeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Create(instruction) => {
-                let row = create_row::CreateRow::from_parts(instruction.clone(), metadata.clone());
+                let row = create_row::CreateRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CreateV2(instruction) => {
-                let row = create_v2_row::CreateV2Row::from_parts(instruction.clone(), metadata.clone());
+                let row = create_v2_row::CreateV2Row::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::DistributeCreatorFees(instruction) => {
-                let row = distribute_creator_fees_row::DistributeCreatorFeesRow::from_parts(instruction.clone(), metadata.clone());
+                let row = distribute_creator_fees_row::DistributeCreatorFeesRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ExtendAccount(instruction) => {
-                let row = extend_account_row::ExtendAccountRow::from_parts(instruction.clone(), metadata.clone());
+                let row = extend_account_row::ExtendAccountRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::GetMinimumDistributableFee(instruction) => {
-                let row = get_minimum_distributable_fee_row::GetMinimumDistributableFeeRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    get_minimum_distributable_fee_row::GetMinimumDistributableFeeRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::InitUserVolumeAccumulator(instruction) => {
-                let row = init_user_volume_accumulator_row::InitUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    init_user_volume_accumulator_row::InitUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Initialize(instruction) => {
-                let row = initialize_row::InitializeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = initialize_row::InitializeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Migrate(instruction) => {
-                let row = migrate_row::MigrateRow::from_parts(instruction.clone(), metadata.clone());
+                let row = migrate_row::MigrateRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::MigrateBondingCurveCreator(instruction) => {
-                let row = migrate_bonding_curve_creator_row::MigrateBondingCurveCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    migrate_bonding_curve_creator_row::MigrateBondingCurveCreatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::Sell(instruction) => {
-                let row = sell_row::SellRow::from_parts(instruction.clone(), metadata.clone());
+                let row = sell_row::SellRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetCreator(instruction) => {
-                let row = set_creator_row::SetCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_creator_row::SetCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetMayhemVirtualParams(instruction) => {
-                let row = set_mayhem_virtual_params_row::SetMayhemVirtualParamsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_mayhem_virtual_params_row::SetMayhemVirtualParamsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetMetaplexCreator(instruction) => {
-                let row = set_metaplex_creator_row::SetMetaplexCreatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_metaplex_creator_row::SetMetaplexCreatorRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetParams(instruction) => {
-                let row = set_params_row::SetParamsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_params_row::SetParamsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SetReservedFeeRecipients(instruction) => {
-                let row = set_reserved_fee_recipients_row::SetReservedFeeRecipientsRow::from_parts(instruction.clone(), metadata.clone());
+                let row = set_reserved_fee_recipients_row::SetReservedFeeRecipientsRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::SyncUserVolumeAccumulator(instruction) => {
-                let row = sync_user_volume_accumulator_row::SyncUserVolumeAccumulatorRow::from_parts(instruction.clone(), metadata.clone());
+                let row =
+                    sync_user_volume_accumulator_row::SyncUserVolumeAccumulatorRow::from_parts(
+                        instruction.clone(),
+                        metadata.clone(),
+                        accounts.clone(),
+                    );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleCashbackEnabled(instruction) => {
-                let row = toggle_cashback_enabled_row::ToggleCashbackEnabledRow::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_cashback_enabled_row::ToggleCashbackEnabledRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleCreateV2(instruction) => {
-                let row = toggle_create_v2_row::ToggleCreateV2Row::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_create_v2_row::ToggleCreateV2Row::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::ToggleMayhemMode(instruction) => {
-                let row = toggle_mayhem_mode_row::ToggleMayhemModeRow::from_parts(instruction.clone(), metadata.clone());
+                let row = toggle_mayhem_mode_row::ToggleMayhemModeRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::UpdateBuybackConfig(instruction) => {
-                let row = update_buyback_config_row::UpdateBuybackConfigRow::from_parts(instruction.clone(), metadata.clone());
+                let row = update_buyback_config_row::UpdateBuybackConfigRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::UpdateGlobalAuthority(instruction) => {
-                let row = update_global_authority_row::UpdateGlobalAuthorityRow::from_parts(instruction.clone(), metadata.clone());
+                let row = update_global_authority_row::UpdateGlobalAuthorityRow::from_parts(
+                    instruction.clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
             PumpInstruction::CpiEvent(instruction) => {
-                let row = cpi_event_row::CpiEventRow::from_parts(instruction.clone(), metadata.clone());
+                let row = cpi_event_row::CpiEventRow::from_parts(
+                    (**instruction).clone(),
+                    metadata.clone(),
+                    accounts.clone(),
+                );
                 row.upsert(pool).await?;
                 Ok(())
             }
