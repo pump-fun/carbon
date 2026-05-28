@@ -54,6 +54,8 @@ impl std::ops::Deref for {{ definedType.name | pascalCase }} {
         &self.0
     }
 }
+{% elif definedType.name | pascalCase == 'OptionBool' %}
+pub use carbon_borsh_types::OptionBool;
 {% else %}
 pub type {{ definedType.name | pascalCase }} = {{ typeManifest.type }};
 {% endif %}
