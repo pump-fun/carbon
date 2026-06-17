@@ -84,6 +84,60 @@ npm install -g @sevenlabs-hq/carbon-cli
 npx @sevenlabs-hq/carbon-cli
 ```
 
+#### Local CLI Development (this repo)
+
+If you are changing renderer templates or CLI source code in this repository, use the
+workspace build instead of a globally installed `carbon-cli`.
+
+```sh
+pnpm install
+pnpm --filter @sevenlabs-hq/carbon-codama-renderer build
+pnpm --filter @sevenlabs-hq/carbon-cli build
+```
+
+Then run generation through the local workspace package:
+
+```sh
+pnpm --filter @sevenlabs-hq/carbon-cli exec carbon-cli parse --idl <PROGRAM_OR_IDL> -u <CLUSTER_OR_RPC> --out-dir <OUT_DIR>
+```
+
+Use `turbo run build` only when you want to build all workspace packages in one pass
+(e.g. release validation or full monorepo verification). For normal decoder generation
+work, building `@sevenlabs-hq/carbon-codama-renderer` and `@sevenlabs-hq/carbon-cli`
+is sufficient.
+
+#### Pump Program Decoder Build (repo scripts)
+
+This repository includes dedicated scripts for Pump program decoders in
+`package.json`:
+
+- `carbon-gen:pump-bc` (Pumpfun / bonding curve program)
+- `carbon-gen:pump-fees` (Pump Fees program)
+- `carbon-gen:pump-amm` (Pump Swap / AMM program)
+
+Recommended flow:
+
+```sh
+# 1) install deps (once or after dependency changes)
+pnpm install
+
+# 2) rebuild local renderer + cli after template/cli changes
+pnpm --filter @sevenlabs-hq/carbon-codama-renderer build
+pnpm --filter @sevenlabs-hq/carbon-cli build
+
+# 3) generate pump decoders
+pnpm run carbon-gen:pump-bc
+pnpm run carbon-gen:pump-fees
+pnpm run carbon-gen:pump-amm
+```
+
+Notes:
+
+- These scripts already run the local workspace CLI via
+  `pnpm --filter @sevenlabs-hq/carbon-cli exec carbon-cli ...`.
+- Rebuilding renderer + cli is required for template changes (for example
+  `packages/renderer/templates/typesPage.njk`) to be reflected in generated decoders.
+
 #### CLI Usage
 
 ```sh

@@ -3,20 +3,26 @@ use solana_pubkey::Pubkey;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
-pub struct RevokeFeeSharingAuthorityEventEvent {
-    pub timestamp: i64,
-    pub mint: Pubkey,
-    pub sharing_config: Pubkey,
-    pub admin: Pubkey,
+pub struct DonationFeePda {
+    pub bump: u8,
+    pub version: u8,
+    pub config_id: Pubkey,
+    pub base_mint: Pubkey,
+    pub quote_mint: Pubkey,
+    pub creator: Pubkey,
+    pub total_donated: u64,
+    pub last_crank_ts: i64,
+    #[cfg_attr(feature = "serde", serde(with = "serde_big_array::BigArray"))]
+    pub reserved: [u8; 64],
 }
 
-impl RevokeFeeSharingAuthorityEventEvent {
+impl DonationFeePda {
     pub fn decode(data: &[u8]) -> Option<Self> {
         if data.len() < 8 {
             return None;
         }
         let discriminator = &data[0..8];
-        if discriminator != [114, 23, 101, 60, 14, 190, 153, 62] {
+        if discriminator != [246, 197, 96, 9, 193, 30, 93, 115] {
             return None;
         }
 

@@ -4,8 +4,8 @@ use juniper::GraphQLEnum;
 #[derive(Debug, Clone, GraphQLEnum)]
 #[graphql(name = "ConfigStatus")]
 pub enum ConfigStatusGraphQL {
-        Paused,
-        Active,
+    Paused,
+    Active,
 }
 
 impl From<crate::types::ConfigStatus> for ConfigStatusGraphQL {
@@ -16,4 +16,3 @@ impl From<crate::types::ConfigStatus> for ConfigStatusGraphQL {
         }
     }
 }
-
