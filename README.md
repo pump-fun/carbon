@@ -301,6 +301,7 @@ Decoders for most popular Solana programs are published and maintained:
 | `carbon-phoenix-v1-decoder`                    | Phoenix V1 Program Decoder                 | PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY  |
 | `carbon-pumpfun-decoder`                       | Pumpfun Program Decoder                    | 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P  |
 | `carbon-pump-swap-decoder`                     | PumpSwap Program Decoder                   | pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA  |
+| `carbon-pump-agent-payments-decoder`           | Pump Agent Payments (tokenized agents)     | AgenTMiC2hvxGebTsgmsD4HHBa8WEcqGFf87iwRRxLo7 |
 | `carbon-pump-fees-decoder`                     | Pump Fees Program Decoder                  | pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ  |
 | `carbon-raydium-amm-v4-decoder`                | Raydium AMM V4 Program Decoder             | 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8 |
 | `carbon-raydium-clmm-decoder`                  | Raydium CLMM Program Decoder               | CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK |
