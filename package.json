@@ -18,7 +18,7 @@
         "carbon-gen:prep": "pnpm --filter @sevenlabs-hq/carbon-versions build && pnpm --filter @sevenlabs-hq/carbon-codama-renderer build && pnpm --filter @sevenlabs-hq/carbon-cli build",
         "carbon-gen:pump-bc": "node ./packages/cli/dist/cli.js parse --idl 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P -u mainnet-beta --out-dir ./decoders/pumpfun-decoder/ -s anchor",
         "carbon-gen:pump-fees": "node ./packages/cli/dist/cli.js parse --idl pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ -u mainnet-beta --out-dir ./decoders/pump-fees-decoder/ -s anchor",
-        "carbon-gen:pump-amm": "node ./packages/cli/dist/cli.js parse --idl pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA -u mainnet-beta --out-dir ./decoders/pump-swap-decoder/ -s anchor",
+        "carbon-gen:pump-amm": "node ./packages/cli/dist/cli.js parse --idl ./idls/pump_amm.json --out-dir ./decoders/pump-swap-decoder/ -s anchor",
         "carbon-gen:all": "pnpm run carbon-gen:prep && pnpm run carbon-gen:pump-bc && pnpm run carbon-gen:pump-fees && pnpm run carbon-gen:pump-amm"
     },
     "devDependencies": {

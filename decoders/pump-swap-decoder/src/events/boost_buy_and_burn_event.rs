@@ -3,32 +3,26 @@ use solana_pubkey::Pubkey;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
-pub struct Pool {
-    pub pool_bump: u8,
-    pub index: u16,
-    pub creator: Pubkey,
-    pub base_mint: Pubkey,
-    pub quote_mint: Pubkey,
-    pub lp_mint: Pubkey,
-    pub pool_base_token_account: Pubkey,
-    pub pool_quote_token_account: Pubkey,
-    /// True circulating supply without burns and lock-ups
-    pub lp_supply: u64,
-    pub coin_creator: Pubkey,
-    pub is_mayhem_mode: bool,
-    pub is_cashback_coin: bool,
-    /// For non-boost pools, value is 0, so the behavior is identical to legacy
-    /// pools.
+pub struct BoostBuyAndBurnEventEvent {
+    pub timestamp: i64,
+    pub pool: Pubkey,
+    pub authority: Pubkey,
+    pub quote_amount_in_requested: u64,
+    pub quote_amount_in_used: u64,
+    pub base_amount_burned: u64,
     pub virtual_quote_reserves: i128,
+    pub real_quote_reserves_after: u64,
+    pub base_reserves_after: u64,
+    pub boost_vault_remaining: u64,
 }
 
-impl Pool {
+impl BoostBuyAndBurnEventEvent {
     pub fn decode(data: &[u8]) -> Option<Self> {
         if data.len() < 8 {
             return None;
         }
         let discriminator = &data[0..8];
-        if discriminator != [241, 154, 109, 4, 17, 177, 109, 188] {
+        if discriminator != [63, 69, 28, 22, 48, 92, 194, 185] {
             return None;
         }
 

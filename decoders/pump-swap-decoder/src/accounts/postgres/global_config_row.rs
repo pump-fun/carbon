@@ -25,6 +25,8 @@ pub struct GlobalConfigRow {
     pub is_cashback_enabled: bool,
     pub buyback_fee_recipients: Vec<Pubkey>,
     pub buyback_basis_points: U64,
+    pub boost_authority: Pubkey,
+    pub boost_enabled: bool,
 }
 
 impl GlobalConfigRow {
@@ -60,6 +62,8 @@ impl GlobalConfigRow {
                 .map(|element| element.into())
                 .collect(),
             buyback_basis_points: source.buyback_basis_points.into(),
+            boost_authority: source.boost_authority.into(),
+            boost_enabled: source.boost_enabled,
         }
     }
 }
@@ -131,6 +135,8 @@ impl TryFrom<GlobalConfigRow> for crate::accounts::global_config::GlobalConfig {
                     )
                 })?,
             buyback_basis_points: *source.buyback_basis_points,
+            boost_authority: *source.boost_authority,
+            boost_enabled: source.boost_enabled,
         })
     }
 }
@@ -158,6 +164,8 @@ impl carbon_core::postgres::operations::Table for crate::accounts::global_config
             "is_cashback_enabled",
             "buyback_fee_recipients",
             "buyback_basis_points",
+            "boost_authority",
+            "boost_enabled",
         ]
     }
 }
@@ -182,9 +190,11 @@ impl carbon_core::postgres::operations::Insert for GlobalConfigRow {
                 "is_cashback_enabled",
                 "buyback_fee_recipients",
                 "buyback_basis_points",
+                "boost_authority",
+                "boost_enabled",
                 __pubkey, __slot
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
             )"#,
         )
         .bind(self.admin)
@@ -201,6 +211,8 @@ impl carbon_core::postgres::operations::Insert for GlobalConfigRow {
         .bind(self.is_cashback_enabled)
         .bind(&self.buyback_fee_recipients)
         .bind(&self.buyback_basis_points)
+        .bind(self.boost_authority)
+        .bind(self.boost_enabled)
         .bind(self.account_metadata.pubkey)
         .bind(&self.account_metadata.slot)
         .execute(pool)
@@ -229,9 +241,11 @@ impl carbon_core::postgres::operations::Upsert for GlobalConfigRow {
                 "is_cashback_enabled",
                 "buyback_fee_recipients",
                 "buyback_basis_points",
+                "boost_authority",
+                "boost_enabled",
                 __pubkey, __slot
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
             ) ON CONFLICT (
                 __pubkey
             ) DO UPDATE SET
@@ -249,6 +263,8 @@ impl carbon_core::postgres::operations::Upsert for GlobalConfigRow {
                 "is_cashback_enabled" = EXCLUDED."is_cashback_enabled",
                 "buyback_fee_recipients" = EXCLUDED."buyback_fee_recipients",
                 "buyback_basis_points" = EXCLUDED."buyback_basis_points",
+                "boost_authority" = EXCLUDED."boost_authority",
+                "boost_enabled" = EXCLUDED."boost_enabled",
                 __slot = EXCLUDED.__slot
             "#,
         )
@@ -266,6 +282,8 @@ impl carbon_core::postgres::operations::Upsert for GlobalConfigRow {
         .bind(self.is_cashback_enabled)
         .bind(&self.buyback_fee_recipients)
         .bind(&self.buyback_basis_points)
+        .bind(self.boost_authority)
+        .bind(self.boost_enabled)
         .bind(self.account_metadata.pubkey)
         .bind(&self.account_metadata.slot)
         .execute(pool)
@@ -339,6 +357,8 @@ impl sqlx_migrator::Operation<sqlx::Postgres> for GlobalConfigMigrationOperation
                 "is_cashback_enabled" BOOLEAN NOT NULL,
                 "buyback_fee_recipients" BYTEA[] NOT NULL,
                 "buyback_basis_points" NUMERIC(20) NOT NULL,
+                "boost_authority" BYTEA NOT NULL,
+                "boost_enabled" BOOLEAN NOT NULL,
                 -- Account metadata
                 __pubkey BYTEA NOT NULL,
                 __slot NUMERIC(20),

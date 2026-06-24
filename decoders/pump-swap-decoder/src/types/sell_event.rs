@@ -30,4 +30,6 @@ pub struct SellEvent {
     pub cashback: u64,
     pub buyback_fee_basis_points: u64,
     pub buyback_fee: u64,
+    pub virtual_quote_reserves: i128,
+    pub can_boost: bool,
 }
