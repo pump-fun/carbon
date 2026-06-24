@@ -87,6 +87,7 @@ carbon-pancake-swap-decoder = { path = "decoders/pancake-swap-decoder", version 
 carbon-phoenix-v1-decoder = { path = "decoders/phoenix-v1-decoder", version = "0.12.0" }
 carbon-proc-macros = { path = "crates/proc-macros", version = "0.12.0" }
 carbon-prometheus-metrics = { path = "metrics/prometheus-metrics", version = "0.12.0" }
+carbon-pump-agent-payments-decoder = { path = "decoders/pump-agent-payments-decoder", version = "0.12.0" }
 carbon-pump-fees-decoder = { path = "decoders/pump-fees-decoder", version = "0.12.0" }
 carbon-pump-swap-decoder = { path = "decoders/pump-swap-decoder", version = "0.12.0" }
 carbon-pumpfun-decoder = { path = "decoders/pumpfun-decoder", version = "0.12.0" }
