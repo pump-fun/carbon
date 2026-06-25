@@ -16,6 +16,7 @@ pub enum CpiEvent {
     AdminUpdateTokenIncentivesEvent(
         events::admin_update_token_incentives_event::AdminUpdateTokenIncentivesEventEvent,
     ),
+    BoostBuyAndBurnEvent(events::boost_buy_and_burn_event::BoostBuyAndBurnEventEvent),
     BuyEvent(events::buy_event::BuyEventEvent),
     ClaimCashbackEvent(events::claim_cashback_event::ClaimCashbackEventEvent),
     ClaimTokenIncentivesEvent(events::claim_token_incentives_event::ClaimTokenIncentivesEventEvent),
@@ -30,6 +31,7 @@ pub enum CpiEvent {
     DepositEvent(events::deposit_event::DepositEventEvent),
     DisableEvent(events::disable_event::DisableEventEvent),
     ExtendAccountEvent(events::extend_account_event::ExtendAccountEventEvent),
+    InitBoostEvent(events::init_boost_event::InitBoostEventEvent),
     InitUserVolumeAccumulatorEvent(
         events::init_user_volume_accumulator_event::InitUserVolumeAccumulatorEventEvent,
     ),
@@ -43,6 +45,7 @@ pub enum CpiEvent {
     SetBondingCurveCoinCreatorEvent(
         events::set_bonding_curve_coin_creator_event::SetBondingCurveCoinCreatorEventEvent,
     ),
+    SetBoostAuthorityEvent(events::set_boost_authority_event::SetBoostAuthorityEventEvent),
     SetMetaplexCoinCreatorEvent(
         events::set_metaplex_coin_creator_event::SetMetaplexCoinCreatorEventEvent,
     ),
@@ -81,6 +84,11 @@ impl CpiEvent {
         }
         if let Some(decoded) = events::admin_update_token_incentives_event::AdminUpdateTokenIncentivesEventEvent::decode(event_data) {
             return Some(CpiEvent::AdminUpdateTokenIncentivesEvent(decoded));
+        }
+        if let Some(decoded) =
+            events::boost_buy_and_burn_event::BoostBuyAndBurnEventEvent::decode(event_data)
+        {
+            return Some(CpiEvent::BoostBuyAndBurnEvent(decoded));
         }
         if let Some(decoded) = events::buy_event::BuyEventEvent::decode(event_data) {
             return Some(CpiEvent::BuyEvent(decoded));
@@ -124,6 +132,9 @@ impl CpiEvent {
         {
             return Some(CpiEvent::ExtendAccountEvent(decoded));
         }
+        if let Some(decoded) = events::init_boost_event::InitBoostEventEvent::decode(event_data) {
+            return Some(CpiEvent::InitBoostEvent(decoded));
+        }
         if let Some(decoded) =
             events::init_user_volume_accumulator_event::InitUserVolumeAccumulatorEventEvent::decode(
                 event_data,
@@ -150,6 +161,11 @@ impl CpiEvent {
         }
         if let Some(decoded) = events::set_bonding_curve_coin_creator_event::SetBondingCurveCoinCreatorEventEvent::decode(event_data) {
             return Some(CpiEvent::SetBondingCurveCoinCreatorEvent(decoded));
+        }
+        if let Some(decoded) =
+            events::set_boost_authority_event::SetBoostAuthorityEventEvent::decode(event_data)
+        {
+            return Some(CpiEvent::SetBoostAuthorityEvent(decoded));
         }
         if let Some(decoded) =
             events::set_metaplex_coin_creator_event::SetMetaplexCoinCreatorEventEvent::decode(

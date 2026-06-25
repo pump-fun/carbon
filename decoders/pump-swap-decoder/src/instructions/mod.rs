@@ -9,6 +9,7 @@ pub mod graphql;
 
 pub mod admin_set_coin_creator;
 pub mod admin_update_token_incentives;
+pub mod boost_buy_and_burn;
 pub mod buy;
 pub mod buy_exact_quote_in;
 pub mod claim_cashback;
@@ -21,12 +22,15 @@ pub mod create_pool;
 pub mod deposit;
 pub mod disable;
 pub mod extend_account;
+pub mod init_boost;
 pub mod init_user_volume_accumulator;
 pub mod migrate_pool_coin_creator;
 pub mod sell;
+pub mod set_boost_authority;
 pub mod set_coin_creator;
 pub mod set_reserved_fee_recipients;
 pub mod sync_user_volume_accumulator;
+pub mod toggle_boost;
 pub mod toggle_cashback_enabled;
 pub mod toggle_mayhem_mode;
 pub mod transfer_creator_fees_to_pump;
@@ -37,14 +41,15 @@ pub mod update_fee_config;
 pub mod withdraw;
 
 pub use self::{
-    admin_set_coin_creator::*, admin_update_token_incentives::*, buy::*, buy_exact_quote_in::*,
-    claim_cashback::*, claim_token_incentives::*, close_user_volume_accumulator::*,
-    collect_coin_creator_fee::*, cpi_event::*, create_config::*, create_pool::*, deposit::*,
-    disable::*, extend_account::*, init_user_volume_accumulator::*, migrate_pool_coin_creator::*,
-    sell::*, set_coin_creator::*, set_reserved_fee_recipients::*, sync_user_volume_accumulator::*,
-    toggle_cashback_enabled::*, toggle_mayhem_mode::*, transfer_creator_fees_to_pump::*,
-    transfer_creator_fees_to_pump_v2::*, update_admin::*, update_buyback_config::*,
-    update_fee_config::*, withdraw::*,
+    admin_set_coin_creator::*, admin_update_token_incentives::*, boost_buy_and_burn::*, buy::*,
+    buy_exact_quote_in::*, claim_cashback::*, claim_token_incentives::*,
+    close_user_volume_accumulator::*, collect_coin_creator_fee::*, cpi_event::*, create_config::*,
+    create_pool::*, deposit::*, disable::*, extend_account::*, init_boost::*,
+    init_user_volume_accumulator::*, migrate_pool_coin_creator::*, sell::*, set_boost_authority::*,
+    set_coin_creator::*, set_reserved_fee_recipients::*, sync_user_volume_accumulator::*,
+    toggle_boost::*, toggle_cashback_enabled::*, toggle_mayhem_mode::*,
+    transfer_creator_fees_to_pump::*, transfer_creator_fees_to_pump_v2::*, update_admin::*,
+    update_buyback_config::*, update_fee_config::*, withdraw::*,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -53,6 +58,7 @@ pub use self::{
 pub enum PumpAmmInstruction {
     AdminSetCoinCreator(AdminSetCoinCreator),
     AdminUpdateTokenIncentives(AdminUpdateTokenIncentives),
+    BoostBuyAndBurn(BoostBuyAndBurn),
     Buy(Buy),
     BuyExactQuoteIn(BuyExactQuoteIn),
     ClaimCashback(ClaimCashback),
@@ -64,12 +70,15 @@ pub enum PumpAmmInstruction {
     Deposit(Deposit),
     Disable(Disable),
     ExtendAccount(ExtendAccount),
+    InitBoost(InitBoost),
     InitUserVolumeAccumulator(InitUserVolumeAccumulator),
     MigratePoolCoinCreator(MigratePoolCoinCreator),
     Sell(Sell),
+    SetBoostAuthority(SetBoostAuthority),
     SetCoinCreator(SetCoinCreator),
     SetReservedFeeRecipients(SetReservedFeeRecipients),
     SyncUserVolumeAccumulator(SyncUserVolumeAccumulator),
+    ToggleBoost(ToggleBoost),
     ToggleCashbackEnabled(ToggleCashbackEnabled),
     ToggleMayhemMode(ToggleMayhemMode),
     TransferCreatorFeesToPump(TransferCreatorFeesToPump),
@@ -111,6 +120,15 @@ impl carbon_core::instruction::InstructionDecoder<'_> for PumpAmmDecoder {
                 return Some(carbon_core::instruction::DecodedInstruction {
                     program_id: instruction.program_id,
                     data: PumpAmmInstruction::AdminUpdateTokenIncentives(decoded),
+                    accounts: instruction.accounts.clone(),
+                });
+            }
+        }
+        {
+            if let Some(decoded) = boost_buy_and_burn::BoostBuyAndBurn::decode(data) {
+                return Some(carbon_core::instruction::DecodedInstruction {
+                    program_id: instruction.program_id,
+                    data: PumpAmmInstruction::BoostBuyAndBurn(decoded),
                     accounts: instruction.accounts.clone(),
                 });
             }
@@ -217,6 +235,15 @@ impl carbon_core::instruction::InstructionDecoder<'_> for PumpAmmDecoder {
             }
         }
         {
+            if let Some(decoded) = init_boost::InitBoost::decode(data) {
+                return Some(carbon_core::instruction::DecodedInstruction {
+                    program_id: instruction.program_id,
+                    data: PumpAmmInstruction::InitBoost(decoded),
+                    accounts: instruction.accounts.clone(),
+                });
+            }
+        }
+        {
             if let Some(decoded) =
                 init_user_volume_accumulator::InitUserVolumeAccumulator::decode(data)
             {
@@ -241,6 +268,15 @@ impl carbon_core::instruction::InstructionDecoder<'_> for PumpAmmDecoder {
                 return Some(carbon_core::instruction::DecodedInstruction {
                     program_id: instruction.program_id,
                     data: PumpAmmInstruction::Sell(decoded),
+                    accounts: instruction.accounts.clone(),
+                });
+            }
+        }
+        {
+            if let Some(decoded) = set_boost_authority::SetBoostAuthority::decode(data) {
+                return Some(carbon_core::instruction::DecodedInstruction {
+                    program_id: instruction.program_id,
+                    data: PumpAmmInstruction::SetBoostAuthority(decoded),
                     accounts: instruction.accounts.clone(),
                 });
             }
@@ -272,6 +308,15 @@ impl carbon_core::instruction::InstructionDecoder<'_> for PumpAmmDecoder {
                 return Some(carbon_core::instruction::DecodedInstruction {
                     program_id: instruction.program_id,
                     data: PumpAmmInstruction::SyncUserVolumeAccumulator(decoded),
+                    accounts: instruction.accounts.clone(),
+                });
+            }
+        }
+        {
+            if let Some(decoded) = toggle_boost::ToggleBoost::decode(data) {
+                return Some(carbon_core::instruction::DecodedInstruction {
+                    program_id: instruction.program_id,
+                    data: PumpAmmInstruction::ToggleBoost(decoded),
                     accounts: instruction.accounts.clone(),
                 });
             }

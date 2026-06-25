@@ -22,6 +22,8 @@ pub struct GlobalConfigGraphQL {
     pub is_cashback_enabled: bool,
     pub buyback_fee_recipients: Vec<Pubkey>,
     pub buyback_basis_points: U64,
+    pub boost_authority: Pubkey,
+    pub boost_enabled: bool,
 }
 
 impl TryFrom<crate::accounts::postgres::GlobalConfigRow> for GlobalConfigGraphQL {
@@ -63,6 +65,8 @@ impl TryFrom<crate::accounts::postgres::GlobalConfigRow> for GlobalConfigGraphQL
                 .map(|item| carbon_core::graphql::primitives::Pubkey(item.0))
                 .collect(),
             buyback_basis_points: carbon_core::graphql::primitives::U64(*row.buyback_basis_points),
+            boost_authority: carbon_core::graphql::primitives::Pubkey(row.boost_authority.0),
+            boost_enabled: row.boost_enabled,
         })
     }
 }

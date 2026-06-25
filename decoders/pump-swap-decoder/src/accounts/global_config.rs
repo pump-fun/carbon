@@ -27,6 +27,8 @@ pub struct GlobalConfig {
     pub is_cashback_enabled: bool,
     pub buyback_fee_recipients: [Pubkey; 8],
     pub buyback_basis_points: u64,
+    pub boost_authority: Pubkey,
+    pub boost_enabled: bool,
 }
 
 impl GlobalConfig {
