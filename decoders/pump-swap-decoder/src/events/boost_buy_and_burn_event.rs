@@ -5,6 +5,8 @@ use solana_pubkey::Pubkey;
 #[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
 pub struct BoostBuyAndBurnEventEvent {
     pub timestamp: i64,
+    pub mint: Pubkey,
+    pub bonding_curve: Pubkey,
     pub pool: Pubkey,
     pub authority: Pubkey,
     pub quote_amount_in_requested: u64,

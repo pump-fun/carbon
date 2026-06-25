@@ -8,6 +8,8 @@ use {
 #[graphql(name = "BoostBuyAndBurnEvent")]
 pub struct BoostBuyAndBurnEventGraphQL {
     pub timestamp: I64,
+    pub mint: Pubkey,
+    pub bonding_curve: Pubkey,
     pub pool: Pubkey,
     pub authority: Pubkey,
     pub quote_amount_in_requested: U64,
@@ -23,6 +25,8 @@ impl From<crate::types::BoostBuyAndBurnEvent> for BoostBuyAndBurnEventGraphQL {
     fn from(original: crate::types::BoostBuyAndBurnEvent) -> Self {
         Self {
             timestamp: carbon_core::graphql::primitives::I64(original.timestamp),
+            mint: carbon_core::graphql::primitives::Pubkey(original.mint),
+            bonding_curve: carbon_core::graphql::primitives::Pubkey(original.bonding_curve),
             pool: carbon_core::graphql::primitives::Pubkey(original.pool),
             authority: carbon_core::graphql::primitives::Pubkey(original.authority),
             quote_amount_in_requested: carbon_core::graphql::primitives::U64(

@@ -5,8 +5,10 @@ use solana_pubkey::Pubkey;
 #[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
 pub struct InitBoostEventEvent {
     pub timestamp: i64,
+    pub mint: Pubkey,
+    pub bonding_curve: Pubkey,
     pub pool: Pubkey,
-    pub sigma: u64,
+    pub virtual_quote_reserves: i128,
     pub real_quote_reserves_after: u64,
 }
 
