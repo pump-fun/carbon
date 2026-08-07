@@ -9,6 +9,7 @@ pub mod collect_protocol_fee_event;
 pub mod collect_remaining_rewards;
 pub mod config_change_event;
 pub mod create_amm_config;
+pub mod create_customizable_pool;
 pub mod create_operation_account;
 pub mod create_personal_position_event;
 pub mod create_pool;
@@ -51,6 +52,7 @@ pub enum RaydiumClmmInstruction {
     CreateAmmConfig(create_amm_config::CreateAmmConfig),
     UpdateAmmConfig(update_amm_config::UpdateAmmConfig),
     CreatePool(create_pool::CreatePool),
+    CreateCustomizablePool(create_customizable_pool::CreateCustomizablePool),
     UpdatePoolStatus(update_pool_status::UpdatePoolStatus),
     CreateOperationAccount(create_operation_account::CreateOperationAccount),
     UpdateOperationAccount(update_operation_account::UpdateOperationAccount),
@@ -100,6 +102,7 @@ impl carbon_core::instruction::InstructionDecoder<'_> for RaydiumClmmDecoder {
             RaydiumClmmInstruction::CreateAmmConfig => create_amm_config::CreateAmmConfig,
             RaydiumClmmInstruction::UpdateAmmConfig => update_amm_config::UpdateAmmConfig,
             RaydiumClmmInstruction::CreatePool => create_pool::CreatePool,
+            RaydiumClmmInstruction::CreateCustomizablePool => create_customizable_pool::CreateCustomizablePool,
             RaydiumClmmInstruction::UpdatePoolStatus => update_pool_status::UpdatePoolStatus,
             RaydiumClmmInstruction::CreateOperationAccount => create_operation_account::CreateOperationAccount,
             RaydiumClmmInstruction::UpdateOperationAccount => update_operation_account::UpdateOperationAccount,
