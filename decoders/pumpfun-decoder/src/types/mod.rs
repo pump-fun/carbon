@@ -17,6 +17,7 @@ pub mod distribute_creator_fees_event;
 pub mod extend_account_event;
 pub mod fee_tier;
 pub mod fees;
+pub mod game_mode;
 pub mod init_user_volume_accumulator_event;
 pub mod migrate_bonding_curve_creator_event;
 pub mod minimum_distributable_fee_event;
@@ -37,7 +38,7 @@ pub use self::{
     claim_token_incentives_event::*, close_user_volume_accumulator_event::*,
     collect_creator_fee_event::*, complete_event::*, complete_pump_amm_migration_event::*,
     config_status::*, create_event::*, distribute_creator_fees_event::*, extend_account_event::*,
-    fee_tier::*, fees::*, init_user_volume_accumulator_event::*,
+    fee_tier::*, fees::*, game_mode::*, init_user_volume_accumulator_event::*,
     migrate_bonding_curve_creator_event::*, minimum_distributable_fee_event::*, option_bool::*,
     reserved_fee_recipients_event::*, set_creator_event::*, set_metaplex_creator_event::*,
     set_params_event::*, shareholder::*, sync_user_volume_accumulator_event::*, trade_event::*,

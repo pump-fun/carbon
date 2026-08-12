@@ -24,6 +24,7 @@ pub mod collect_creator_fee_v2;
 pub mod cpi_event;
 pub mod create;
 pub mod create_v2;
+pub mod create_v3;
 pub mod distribute_creator_fees;
 pub mod distribute_creator_fees_v2;
 pub mod extend_account;
@@ -54,7 +55,7 @@ pub use self::{
     admin_update_token_incentives::*, buy::*, buy_exact_quote_in_v2::*, buy_exact_sol_in::*,
     buy_v2::*, claim_cashback::*, claim_cashback_v2::*, claim_token_incentives::*,
     close_user_volume_accumulator::*, collect_creator_fee::*, collect_creator_fee_v2::*,
-    cpi_event::*, create::*, create_v2::*, distribute_creator_fees::*,
+    cpi_event::*, create::*, create_v2::*, create_v3::*, distribute_creator_fees::*,
     distribute_creator_fees_v2::*, extend_account::*, get_minimum_distributable_fee::*,
     init_user_volume_accumulator::*, initialize::*, migrate::*, migrate_bonding_curve_creator::*,
     migrate_v2::*, remove_quote_mint::*, sell::*, sell_v2::*, set_creator::*,
@@ -84,6 +85,7 @@ pub enum PumpInstruction {
     CollectCreatorFeeV2(CollectCreatorFeeV2),
     Create(Create),
     CreateV2(CreateV2),
+    CreateV3(CreateV3),
     DistributeCreatorFees(DistributeCreatorFees),
     DistributeCreatorFeesV2(DistributeCreatorFeesV2),
     ExtendAccount(ExtendAccount),
@@ -269,6 +271,15 @@ impl carbon_core::instruction::InstructionDecoder<'_> for PumpDecoder {
                 return Some(carbon_core::instruction::DecodedInstruction {
                     program_id: instruction.program_id,
                     data: PumpInstruction::CreateV2(decoded),
+                    accounts: instruction.accounts.clone(),
+                });
+            }
+        }
+        {
+            if let Some(decoded) = create_v3::CreateV3::decode(data) {
+                return Some(carbon_core::instruction::DecodedInstruction {
+                    program_id: instruction.program_id,
+                    data: PumpInstruction::CreateV3(decoded),
                     accounts: instruction.accounts.clone(),
                 });
             }
