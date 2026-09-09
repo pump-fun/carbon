@@ -160,10 +160,7 @@ impl YellowstoneGrpcGeyserClient {
         self
     }
 
-    pub fn with_transaction_timing_observer(
-        mut self,
-        observer: TransactionTimingObserver,
-    ) -> Self {
+    pub fn with_transaction_timing_observer(mut self, observer: TransactionTimingObserver) -> Self {
         self.transaction_timing_observer = Some(observer);
         self
     }
@@ -518,6 +515,33 @@ impl Datasource for YellowstoneGrpcGeyserClient {
     }
 }
 
+// Full channel = the pipeline is behind; wait for it instead of silently dropping the update (a stalled stream replays from slot on reconnect, a dropped update is gone)
+async fn forward_update(
+    sender: &Sender<(Update, DatasourceId)>,
+    metrics: &MetricsCollection,
+    update: (Update, DatasourceId),
+    what: &str,
+    slot: u64,
+) -> bool {
+    let update = match sender.try_send(update) {
+        Ok(()) => return true,
+        Err(mpsc::error::TrySendError::Closed(_)) => {
+            log::error!("Failed to send {what} update at slot {slot}: pipeline channel closed");
+            return false;
+        }
+        Err(mpsc::error::TrySendError::Full(update)) => update,
+    };
+    metrics
+        .increment_counter("yellowstone_grpc_updates_channel_full_waits", 1)
+        .await
+        .unwrap_or_else(|value| log::error!("Error recording metric: {value}"));
+    if sender.send(update).await.is_err() {
+        log::error!("Failed to send {what} update at slot {slot}: pipeline channel closed");
+        return false;
+    }
+    true
+}
+
 async fn send_subscribe_account_update_info(
     account_update_info: Option<SubscribeUpdateAccountInfo>,
     metrics: &MetricsCollection,
@@ -558,11 +582,14 @@ async fn send_subscribe_account_update_info(
                         .txn_signature
                         .and_then(|sig| Signature::try_from(sig).ok()),
                 };
-                if let Err(e) = sender.try_send((Update::AccountDeletion(account_deletion), id)) {
-                    log::error!(
-                        "Failed to send account deletion update for pubkey {account_pubkey:?} at slot {slot}: {e:?}"
-                    );
-                }
+                forward_update(
+                    sender,
+                    metrics,
+                    (Update::AccountDeletion(account_deletion), id),
+                    &format!("account deletion {account_pubkey:?}"),
+                    slot,
+                )
+                .await;
             }
         } else {
             let update = Update::Account(AccountUpdate {
@@ -574,11 +601,14 @@ async fn send_subscribe_account_update_info(
                     .and_then(|sig| Signature::try_from(sig).ok()),
             });
 
-            if let Err(e) = sender.try_send((update, id)) {
-                log::error!(
-                    "Failed to send account update for pubkey {account_pubkey:?} at slot {slot}: {e:?}"
-                );
-            }
+            forward_update(
+                sender,
+                metrics,
+                (update, id),
+                &format!("account {account_pubkey:?}"),
+                slot,
+            )
+            .await;
         }
 
         metrics
@@ -638,10 +668,15 @@ async fn send_subscribe_update_transaction_info(
             block_time,
             block_hash: None,
         }));
-        if let Err(e) = sender.try_send((update, id)) {
-            log::error!(
-                "Failed to send transaction update with signature {signature:?} at slot {slot}: {e:?}"
-            );
+        if !forward_update(
+            sender,
+            metrics,
+            (update, id),
+            &format!("transaction {signature:?}"),
+            slot,
+        )
+        .await
+        {
             return;
         }
 
@@ -661,4 +696,3 @@ async fn send_subscribe_update_transaction_info(
         log::error!("No transaction info in `UpdateOneof::Transaction` at slot {slot}");
     }
 }
-
